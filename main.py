@@ -4,8 +4,10 @@ from google import genai
 from google.genai import types
 from dotenv import load_dotenv
 import os
+import sys
+import datetime
 
-from db import generate_db
+from db import generate_db, delete_db
 
 
 def call_gemini_api(query):
@@ -18,8 +20,8 @@ def call_gemini_api(query):
     """
     try:
         load_dotenv() #This loads the .env file
-    except e:
-        raise Exception(e)
+    except Exception as e:
+        print(e)
     
     """
     Try/Except:
@@ -36,8 +38,8 @@ def call_gemini_api(query):
             contents=query
         )
         return response.text
-    except e:
-        raise Exception(e)
+    except Exception as e:
+        print(e)
 
 def manage_chats():
   pass
@@ -50,10 +52,21 @@ def read_db():
 def main():
   print("Generating Mock Customer Data...")
   generate_db()
+  chats = []
   print("Hi! How can I help today?")
-  query = input()
-
-  print(call_gemini_api(query))
+  query = ""
+  while query != "exit":
+    query = input()
+    chats.append(f"🧑 User: {query}\n")
+    context = "".join(chats)
+    context += f"🧑 User: {query}\n"
+    response = call_gemini_api(context)
+    chats.append(f"🤖 Agent: {response}\n")
+    print(response)
+  with open(f"./chat_logs/{datetime.datetime.now()}", "a") as f:
+    f.write("".join(chats))
+  print("Deleting mock DB")
+  delete_db("customer_db.db")
 
 if __name__ == "__main__":
   main()

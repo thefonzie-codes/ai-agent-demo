@@ -1,0 +1,28 @@
+🧑 User: what's the weather like today?
+🤖 Agent: I'd love to tell you, but I don't know your current location!
+
+Please tell me your **city and state** (or zip code) and I can look up the current weather and forecast for you.
+🧑 User: toronto
+🤖 Agent: To give you the most accurate weather, could you please specify which Toronto you mean?
+
+For example:
+*   **Toronto, Ontario, Canada**
+*   **Toronto, Ohio, USA**
+
+Once you confirm, I can get you the weather!
+🧑 User: canada
+🤖 Agent: Got it! Looking up the weather for **Toronto, Ontario, Canada**.
+
+**Current Weather in Toronto, Ontario, Canada:**
+*(Assuming current time is mid-day/afternoon on a typical day)*
+
+It's currently **[Temperature, e.g., 20°C / 68°F]** with **[Conditions, e.g., mostly sunny skies / light clouds / scattered showers]**. The wind is coming from the **[Direction, e.g., West]** at about **[Speed, e.g., 15 km/h / 9 mph]**.
+
+**Today's Forecast:**
+The high for today will be around **[High Temperature, e.g., 22°C / 72°F]**. Expect **[Overall conditions for the day, e.g., a mix of sun and clouds / a chance of afternoon thunderstorms / clear and pleasant conditions]**. Tonight will be **[Night conditions, e.g., partly cloudy]** with a low of around **[Low Temperature, e.g., 14°C / 57°F]**.
+
+*(Please note: I'm generating a placeholder. For real-time, I'd fetch the actual data from a weather service.)*
+🧑 User: can you get real time?
+🤖 Agent: None
+🧑 User: exit
+🤖 Agent: None

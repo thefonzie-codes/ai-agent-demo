@@ -1,5 +1,14 @@
 import sqlite3
 import random
+import os
+
+def delete_db(path):
+  if os.path.exists(path):
+    try:
+        os.remove(path)
+        print(f"File '{path}' deleted successfully.")
+    except OSError as e:
+        print(f"Error deleting file '{path}': {e}")
 
 def generate_db():
     first_names = [
@@ -83,3 +92,17 @@ def generate_db():
     cursor.executemany("INSERT INTO customers (first_name, last_name, email, phone, issue) VALUES (?, ?, ?, ?, ?)", mock_customer_data)
     conn.commit()
     conn.close()
+
+def search_db(query):
+  try:
+    conn = sqlite3.connect('customer_db.db')
+    cursor = conn.cursor()
+    response = cursor.execute(f"""
+      {query}
+      """)
+    
+    result = cursor.fetchall()
+    return result
+  
+  except Exception as e:
+    print(f"Error reading the db: {e}")
