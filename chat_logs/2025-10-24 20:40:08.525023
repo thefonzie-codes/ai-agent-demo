@@ -1,0 +1,27 @@
+🧑 User: exit
+🤖 Agent: sdk_http_response=HttpResponse(
+  headers=<dict len=10>
+) candidates=[Candidate(
+  content=Content(
+    parts=[
+      Part(
+        text='I am sorry, I cannot fulfill this request. I can only search the customer database.',
+        thought_signature=b"\n\xd2\x01\x01\xd1\xed\x8aotD\xb8D\x9d_\xd0!!D\x7f\xa6\xfc\x82\xceE3A\xdc\x00\xa6\xbavL\xf4\xbb\xc8\xcc=\x06\xc9)\x8b\x15\xa8'\xf3Bw\xd0\xf3\xe8\xf6ub\xe7\xbe\xbc\x04\xdc\xc0\xf7\x12\xa4\x82\xd1\x146\xf5\x19U\xacy\x0b\xdb\xfd\x97{=\xd9\xe1\xa5\xd0\x0b\xf9\x0c8i\xd8\x99\xbda\xf7\xab\x80\x9c\x98\x7f\xde...'
+      ),
+    ],
+    role='model'
+  ),
+  finish_reason=<FinishReason.STOP: 'STOP'>,
+  index=0
+)] create_time=None model_version='gemini-2.5-flash' prompt_feedback=None response_id='KOT7aP75HM3WjMcPyZKkaA' usage_metadata=GenerateContentResponseUsageMetadata(
+  candidates_token_count=18,
+  prompt_token_count=83,
+  prompt_tokens_details=[
+    ModalityTokenCount(
+      modality=<MediaModality.TEXT: 'TEXT'>,
+      token_count=83
+    ),
+  ],
+  thoughts_token_count=43,
+  total_token_count=144
+) automatic_function_calling_history=[] parsed=None
