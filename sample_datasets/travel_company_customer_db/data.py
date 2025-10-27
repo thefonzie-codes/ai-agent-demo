@@ -274,55 +274,155 @@ CASE_STATUS = {"Open", "In Progress", "Resolved", "Closed", "Pending"}
 
 CASE_PRIORITY = {"Low", "Medium", "High", "Critical"}
 
-CASE_SUBJECTS = {
-    # Booking related
-    "Unable to complete booking",
-    "Booking confirmation not received",
-    "Need to modify booking dates",
-    "Package not available for selected dates",
-    "Want to add travelers to existing booking",
+CASE_SUBJECTS_BY_TYPE = {
+    "Booking Issue": [
+        "Unable to complete booking",
+        "Booking confirmation not received",
+        "Need to modify booking dates",
+        "Package not available for selected dates",
+        "Want to add travelers to existing booking",
+        "Duplicate bookings created",
+        "Booking shows incorrect information",
+        "Need to transfer booking",
+        "Promotional code not working",
+        "Special requests not recorded",
+        "Package upgrade request",
+        "Group booking inquiry",
+    ],
     
-    # Payment related
-    "Payment failed but amount deducted",
-    "Unable to process refund",
-    "Payment method not working",
-    "Incorrect amount charged",
-    "Request invoice for payment",
+    "Payment Issue": [
+        "Payment failed but amount deducted",
+        "Payment method not working",
+        "Incorrect amount charged",
+        "URGENT: Double charge on account",
+        "Payment method declined",
+        "Currency conversion issue",
+        "Payment plan not processing",
+        "Transaction failed unexpectedly",
+        "URGENT: Multiple unauthorized charges",
+        "CRITICAL: Fraudulent transaction on account",
+    ],
     
-    # Account related
-    "Cannot access account",
-    "Need to update personal information",
-    "Loyalty points not reflecting",
-    "Want to merge duplicate accounts",
-    "Email not receiving notifications",
+    "Billing": [
+        "Request invoice for payment",
+        "Invoice shows incorrect amount",
+        "Need detailed billing breakdown",
+        "VAT receipt request",
+        "Billing address update",
+        "Hidden fees inquiry",
+        "Tax refund question",
+        "Receipt reissue needed",
+    ],
     
-    # Travel related
-    "Question about destination",
-    "Need travel insurance information",
-    "Visa requirements inquiry",
-    "Special dietary requirements",
-    "Accessibility accommodations needed",
-    "Transportation to destination",
+    "Account Management": [
+        "Cannot access account",
+        "Need to update personal information",
+        "Loyalty points not reflecting",
+        "Want to merge duplicate accounts",
+        "Email not receiving notifications",
+        "Account locked issue",
+        "Password reset not working",
+        "Profile update needed",
+        "Account security concern",
+        "Two-factor authentication issue",
+    ],
     
-    # Cancellation/Refund
-    "Request booking cancellation",
-    "Refund status inquiry",
-    "Cancellation policy question",
-    "Emergency cancellation",
+    "Travel Inquiry": [
+        "Question about destination",
+        "Need travel insurance information",
+        "Visa requirements inquiry",
+        "Vaccination requirements",
+        "Weather information request",
+        "Local customs inquiry",
+        "Destination recommendations",
+        "Travel documentation needed",
+        "Airport transfer information",
+        "Local transportation inquiry",
+    ],
     
-    # Technical issues
-    "Website not loading properly",
-    "Mobile app crashing",
-    "Cannot upload documents",
-    "Search function not working",
+    "Cancellation Request": [
+        "Request booking cancellation",
+        "Cancellation policy question",
+        "URGENT: Emergency cancellation needed",
+        "URGENT: Medical emergency cancellation",
+        "Work conflict cancellation",
+        "URGENT: Family emergency cancellation",
+        "Travel advisory cancellation",
+        "Partial group cancellation",
+        "Weather-related cancellation",
+        "URGENT: Death in family - immediate cancellation",
+        "Emergency situation requiring cancellation",
+    ],
     
-    # General inquiries
-    "General travel advice",
-    "Package recommendations",
-    "Group booking inquiry",
-    "Corporate travel inquiry",
-    "Complaint about service",
-    "Feedback on recent trip"
+    "Refund Request": [
+        "Refund status inquiry",
+        "Unable to process refund",
+        "URGENT: Refund amount disputed",
+        "URGENT: Expedited refund request needed",
+        "Partial refund request",
+        "URGENT: Refund not received after 30 days",
+        "Travel credit instead of refund",
+        "Insurance claim refund",
+        "CRITICAL: Large refund amount missing",
+    ],
+    
+    "Technical Support": [
+        "Website not loading properly",
+        "Mobile app crashing",
+        "Cannot upload documents",
+        "Search function not working",
+        "Payment page error",
+        "App sync issue",
+        "Email links not working",
+        "Booking confirmation not accessible",
+    ],
+    
+    "Complaint": [
+        "Complaint about service",
+        "Accommodation quality issue",
+        "Staff behavior complaint",
+        "Misleading package description",
+        "Amenities not available",
+        "Poor service experience",
+        "Cleanliness issue",
+        "URGENT: Safety concern - immediate attention needed",
+        "Service not as advertised",
+        "URGENT: Health and safety emergency",
+        "CRITICAL: Unsafe conditions at property",
+        "Severe service failure",
+    ],
+    
+    "Customer Support": [
+        "General travel advice",
+        "Special accommodation request",
+        "Dietary restriction inquiry",
+        "Accessibility needs",
+        "Special assistance required",
+        "Communication preference update",
+        "Emergency contact needed",
+        "Language support request",
+    ],
+    
+    "Product Feedback": [
+        "Feedback on recent trip",
+        "Service improvement suggestion",
+        "Website usability feedback",
+        "Package recommendation",
+        "New feature request",
+        "Review submission",
+        "General feedback",
+    ],
+    
+    "Other": [
+        "Corporate travel inquiry",
+        "Documentation request",
+        "Insurance certificate needed",
+        "Travel history report",
+        "Verification letter needed",
+        "Legal documentation required",
+        "Emergency assistance",
+        "General inquiry",
+    ],
 }
 
 AGENT_NAMES = {
@@ -410,3 +510,12 @@ PHONE_FORMATS = {
 
 # Import organized case descriptions
 from .case_descriptions import CASE_DESCRIPTIONS_BY_TYPE
+
+# Export commonly used variables
+__all__ = [
+    'FIRST_NAMES', 'LAST_NAMES', 'CITIES', 'COUNTRIES', 'LANGUAGES',
+    'DESTINATIONS', 'PACKAGE_CATEGORIES', 'PACKAGE_NAMES',
+    'PAYMENT_METHODS', 'BOOKING_STATUS', 'PAYMENT_STATUS', 'SEASONS',
+    'CASE_TYPES', 'CASE_STATUS', 'CASE_PRIORITY', 'CASE_SUBJECTS_BY_TYPE',
+    'AGENT_NAMES', 'STREET_NAMES', 'PHONE_FORMATS', 'CASE_DESCRIPTIONS_BY_TYPE'
+]
