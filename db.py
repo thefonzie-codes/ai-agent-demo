@@ -225,6 +225,69 @@ def generate_db(path:str, num_customers=10000):
         VALUES (?, ?, ?, ?, ?, ?)
     ''', payment_data)
     
+    # Insert cases
+    print("Inserting support cases...")
+    case_types = list(CASE_TYPES)
+    case_subjects = list(CASE_SUBJECTS)
+    case_statuses = list(CASE_STATUS)
+    case_priorities = list(CASE_PRIORITY)
+    agent_names = list(AGENT_NAMES)
+    num_cases = min(num_customers, 800)
+    case_data = []
+    
+    for i in range(num_cases):
+        customer_id = random.randint(1, num_customers)
+        
+        # 60% of cases linked to a booking, 40% general
+        if random.random() < 0.6 and num_bookings > 0:
+            booking_id = random.randint(1, num_bookings)
+        else:
+            booking_id = None
+        
+        # Choose case type and get matching description
+        case_type = random.choice(case_types)
+        subject = random.choice(case_subjects)
+        
+        # Get description from the appropriate case type
+        description = random.choice(CASE_DESCRIPTIONS_BY_TYPE[case_type])
+        status = random.choice(case_statuses)
+        priority = random.choice(case_priorities)
+        
+        # 80% of cases are assigned to an agent
+        if random.random() < 0.8:
+            assigned_to = random.choice(agent_names)
+        else:
+            assigned_to = None
+        
+        # Created date (within last 6 months)
+        created_days_ago = random.randint(0, 180)
+        created_at = datetime.now() - timedelta(days=created_days_ago)
+        created_str = created_at.strftime('%Y-%m-%d %H:%M:%S')
+        
+        # Updated date (between created and now)
+        updated_days_ago = random.randint(0, created_days_ago)
+        updated_at = datetime.now() - timedelta(days=updated_days_ago)
+        updated_str = updated_at.strftime('%Y-%m-%d %H:%M:%S')
+        
+        # Resolved date (only if status is Resolved or Closed)
+        if status in ['Resolved', 'Closed']:
+            resolved_days_ago = random.randint(0, updated_days_ago)
+            resolved_at = datetime.now() - timedelta(days=resolved_days_ago)
+            resolved_str = resolved_at.strftime('%Y-%m-%d %H:%M:%S')
+        else:
+            resolved_str = None
+        
+        case_data.append((
+            customer_id, booking_id, case_type, subject, description,
+            status, priority, assigned_to, created_str, updated_str, resolved_str
+        ))
+    
+    cursor.executemany('''
+        INSERT INTO cases (customer_id, booking_id, case_type, subject, description,
+                          status, priority, assigned_to, created_at, updated_at, resolved_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    ''', case_data)
+    
     conn.commit()
     conn.close()
     
@@ -234,6 +297,7 @@ def generate_db(path:str, num_customers=10000):
     print(f"  - {num_packages} packages")
     print(f"  - {num_bookings} bookings")
     print(f"  - {len(payment_data)} payments")
+    print(f"  - {len(case_data)} support cases")
 
 def query_db(query: str) -> list:
     """Execute a query on the database."""

@@ -61,3 +61,20 @@ CREATE TABLE payments (
     status TEXT,                -- "Completed", "Pending", "Failed"
     FOREIGN KEY (booking_id) REFERENCES bookings(id)
 );
+
+CREATE TABLE cases (
+    id INTEGER PRIMARY KEY,
+    customer_id INTEGER,
+    booking_id INTEGER,         -- Optional: link to specific booking if relevant
+    case_type TEXT NOT NULL,    -- "customer_support", "billing", "technical_support", etc.
+    subject TEXT NOT NULL,
+    description TEXT,
+    status TEXT DEFAULT 'Open', -- "Open", "In Progress", "Resolved", "Closed"
+    priority TEXT DEFAULT 'Medium', -- "Low", "Medium", "High", "Critical"
+    assigned_to TEXT,           -- Support agent name
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    resolved_at TIMESTAMP,
+    FOREIGN KEY (customer_id) REFERENCES customers(id),
+    FOREIGN KEY (booking_id) REFERENCES bookings(id)
+);

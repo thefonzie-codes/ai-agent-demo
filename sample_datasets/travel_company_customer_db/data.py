@@ -264,7 +264,73 @@ SEASONS = {
     "Off-Season"
 }
 
-CASE_TAGS = ("customer_support", "billing", "technical_support", "account_management", "product_feedback", "other")
+CASE_TYPES = {
+    "Customer Support", "Billing", "Technical Support", "Account Management", 
+    "Product Feedback", "Booking Issue", "Cancellation Request", "Refund Request",
+    "Payment Issue", "Travel Inquiry", "Complaint", "Other"
+}
+
+CASE_STATUS = {"Open", "In Progress", "Resolved", "Closed", "Pending"}
+
+CASE_PRIORITY = {"Low", "Medium", "High", "Critical"}
+
+CASE_SUBJECTS = {
+    # Booking related
+    "Unable to complete booking",
+    "Booking confirmation not received",
+    "Need to modify booking dates",
+    "Package not available for selected dates",
+    "Want to add travelers to existing booking",
+    
+    # Payment related
+    "Payment failed but amount deducted",
+    "Unable to process refund",
+    "Payment method not working",
+    "Incorrect amount charged",
+    "Request invoice for payment",
+    
+    # Account related
+    "Cannot access account",
+    "Need to update personal information",
+    "Loyalty points not reflecting",
+    "Want to merge duplicate accounts",
+    "Email not receiving notifications",
+    
+    # Travel related
+    "Question about destination",
+    "Need travel insurance information",
+    "Visa requirements inquiry",
+    "Special dietary requirements",
+    "Accessibility accommodations needed",
+    "Transportation to destination",
+    
+    # Cancellation/Refund
+    "Request booking cancellation",
+    "Refund status inquiry",
+    "Cancellation policy question",
+    "Emergency cancellation",
+    
+    # Technical issues
+    "Website not loading properly",
+    "Mobile app crashing",
+    "Cannot upload documents",
+    "Search function not working",
+    
+    # General inquiries
+    "General travel advice",
+    "Package recommendations",
+    "Group booking inquiry",
+    "Corporate travel inquiry",
+    "Complaint about service",
+    "Feedback on recent trip"
+}
+
+AGENT_NAMES = {
+    "Sarah Johnson", "Michael Chen", "Emily Rodriguez", "David Kim",
+    "Jessica Patel", "Robert Taylor", "Amanda Singh", "James Wilson",
+    "Maria Garcia", "Christopher Lee", "Jennifer Brown", "Daniel Martinez",
+    "Lisa Anderson", "Matthew Thomas", "Ashley White", "Joshua Miller"
+}
 
 # Street names for addresses
 STREET_NAMES = {
@@ -342,3 +408,5 @@ PHONE_FORMATS = {
     "(555) {}-{}", "(555) {}-{}", "+1-555-{}-{}", "555.{}.{}", "{}555{}"
 }
 
+# Import organized case descriptions
+from .case_descriptions import CASE_DESCRIPTIONS_BY_TYPE

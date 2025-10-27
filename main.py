@@ -108,16 +108,16 @@ chats = []
 print("Hi! How can I help today?")
 user_query = ""
 while user_query != "exit":
-    user_query = f"User: {input()}"
-    if "exit" in user_query.lower():
+    user_query = input()
+    if user_query == "exit":
         print("Goodbye!")
         sys.exit()
     else:
         print("Thinking...")
-    response = call_gemini_api(user_query)
+    chats.append(f"🧑 User: {user_query}\n")
+    response = call_gemini_api("".join(chats) + user_query)
     print(f"� Agent: {response}")
-    chats.append(user_query)
-    chats.append(response)
+    chats.append(f"🤖 Agent: {response}\n")
 
 with open(f"./chat_logs/{datetime.datetime.now()}", "a") as f:
     f.write("".join(chats))
