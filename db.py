@@ -11,6 +11,10 @@ def delete_db(path:str):
             print(f"Error deleting file '{path}': {e}")
 
 def generate_db():
+    if os.path.exists('customer_db.db'):
+        print("Database already exists, skipping generation")
+        return
+
     first_names = [
         "Ethan", "Olivia", "Liam", "Emma", "Noah", "Ava", "William",
         "Sophia", "James", "Isabella", "Benjamin", "Charlotte", "Lucas",
