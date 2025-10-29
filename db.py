@@ -13,12 +13,18 @@ def generate_db(path:str, num_customers=10000):
     print(f"Generating database at {path}...")
     conn = sqlite3.connect(path)
     cursor = conn.cursor()
-    
+
+    # Enable foreign key constraints
+    cursor.execute("PRAGMA foreign_keys = ON")
+
     # Load and execute schema from SQL file
     schema_path = 'sample_datasets/travel_company_customer_db/schema.sql'
     with open(schema_path, 'r') as f:
         schema_sql = f.read()
     cursor.executescript(schema_sql)
+
+    # Re-enable foreign keys after executescript (which resets pragmas)
+    cursor.execute("PRAGMA foreign_keys = ON")
     
     # Convert sets to lists for random.choice
     first_names = list(FIRST_NAMES)
@@ -118,26 +124,22 @@ def generate_db(path:str, num_customers=10000):
     print("Inserting packages...")
     package_data = []
     pkg_names_list = list(package_names)[:50]
-    
+
+    # Create a mapping of destination_id to avg_price_per_day for quick lookup
+    cursor.execute('SELECT id, avg_price_per_day FROM destinations')
+    dest_prices = dict(cursor.fetchall())
+
     for pkg_name in pkg_names_list:
         dest_id = random.randint(1, num_destinations)
         duration = random.choice([2, 3, 5, 7, 10, 14])
-        
-        # VERIFY: Get destination price and ensure destination exists
-        cursor.execute('SELECT avg_price_per_day FROM destinations WHERE id = ?', (dest_id,))
-        result = cursor.fetchone()
-        if result is None:
-            print(f"⚠️  Warning: Destination {dest_id} not found, using default price")
-            base_price = 100.0
-        else:
-            base_price = result[0]
+        base_price = dest_prices[dest_id]
         price = round(base_price * duration * random.uniform(0.8, 1.3), 2)
-        
+
         category = random.choice(package_categories)
         max_capacity = random.randint(10, 50)
         current_bookings = random.randint(0, max_capacity)
         description = f"Enjoy a {duration}-day {category.lower()} experience"
-        
+
         package_data.append((pkg_name, dest_id, duration, price, description, category, max_capacity, current_bookings))
     
     cursor.executemany('''
@@ -151,44 +153,43 @@ def generate_db(path:str, num_customers=10000):
     num_bookings = min(num_customers * 2, 500)
     print(f"Inserting {num_bookings} bookings...")
     booking_data = []
-    
+
+    # Create a mapping of package_id to (duration, price) for quick lookup
+    cursor.execute('SELECT id, duration_days, price FROM packages')
+    package_info = {pkg_id: (duration, price) for pkg_id, duration, price in cursor.fetchall()}
+
     for i in range(num_bookings):
         customer_id = random.randint(1, num_customers)
         package_id = random.randint(1, num_packages)
-        
+
         # Booking date (within last year)
         booking_days_ago = random.randint(0, 365)
         booking_date = datetime.now() - timedelta(days=booking_days_ago)
         booking_str = booking_date.strftime('%Y-%m-%d %H:%M:%S')
-        
+
         # Travel dates (in the future or recent past)
         travel_start_offset = random.randint(-30, 90)
         travel_start = datetime.now() + timedelta(days=travel_start_offset)
         travel_start_str = travel_start.strftime('%Y-%m-%d')
-        
-        # VERIFY: Get package duration and price, ensure package exists
-        cursor.execute('SELECT duration_days, price FROM packages WHERE id = ?', (package_id,))
-        result = cursor.fetchone()
-        if result is None:
-            print(f"⚠️  Warning: Package {package_id} not found, skipping booking")
-            continue
-        duration, base_price = result
-        
+
+        # Get package duration and price
+        duration, base_price = package_info[package_id]
+
         travel_end = travel_start + timedelta(days=duration)
         travel_end_str = travel_end.strftime('%Y-%m-%d')
-        
+
         num_travelers = random.randint(1, 4)
         total_price = round(base_price * num_travelers, 2)
-        
+
         status = random.choice(booking_statuses)
-        
+
         special_requests_list = [
             "None", "None", "None", "Window seat preferred", "Vegetarian meals",
             "Late check-in", "Wheelchair accessible", "Close to elevator",
             "Extra towels", "King bed preferred"
         ]
         special_request = random.choice(special_requests_list)
-        
+
         booking_data.append((
             customer_id, package_id, booking_str, travel_start_str, travel_end_str,
             num_travelers, total_price, status, special_request
@@ -203,33 +204,30 @@ def generate_db(path:str, num_customers=10000):
     # Insert payments
     print("Inserting payments...")
     payment_data = []
-    
-    for booking_id in range(1, num_bookings + 1):
-        # VERIFY: Get booking total price, ensure booking exists
-        cursor.execute('SELECT total_price FROM bookings WHERE id = ?', (booking_id,))
-        result = cursor.fetchone()
-        if result is None:
-            continue  # Skip if booking doesn't exist
-        booking_price = result[0]
-        
+
+    # Get all bookings with their total prices
+    cursor.execute('SELECT id, total_price FROM bookings')
+    bookings = cursor.fetchall()
+
+    for booking_id, booking_price in bookings:
         # Some bookings might have multiple payments
         num_payments = random.choices([1, 2], weights=[0.8, 0.2])[0]
-        
+
         for payment_num in range(num_payments):
             if num_payments == 1:
                 amount = booking_price
             else:
                 amount = round(booking_price / num_payments, 2)
-            
+
             # Payment date
             payment_days_ago = random.randint(0, 365)
             payment_date = datetime.now() - timedelta(days=payment_days_ago)
             payment_str = payment_date.strftime('%Y-%m-%d %H:%M:%S')
-            
+
             payment_method = random.choice(payment_methods)
             transaction_id = f"TXN{random.randint(1000000000, 9999999999)}"
             payment_status = random.choice(payment_statuses)
-            
+
             payment_data.append((booking_id, amount, payment_str, payment_method, transaction_id, payment_status))
     
     cursor.executemany('''
@@ -243,36 +241,36 @@ def generate_db(path:str, num_customers=10000):
     case_statuses = list(CASE_STATUS)
     case_priorities = list(CASE_PRIORITY)
     agent_names = list(AGENT_NAMES)
-    
+
     # Define which case types should link to bookings
     booking_related_types = [
-        "Booking Issue", "Payment Issue", "Billing", "Cancellation Request", 
+        "Booking Issue", "Payment Issue", "Billing", "Cancellation Request",
         "Refund Request", "Complaint"
     ]
     non_booking_types = [
-        "Account Management", "Technical Support", "Travel Inquiry", 
+        "Account Management", "Technical Support", "Travel Inquiry",
         "Customer Support", "Product Feedback", "Other"
     ]
-    
+
+    # Get actual number of bookings and create a mapping
+    cursor.execute('SELECT id, customer_id FROM bookings')
+    booking_customer_map = dict(cursor.fetchall())
+    actual_num_bookings = len(booking_customer_map)
+
     num_cases = min(num_customers, 800)
     case_data = []
-    
+
     for i in range(num_cases):
         # Decide if this case should link to a booking (70% of cases)
-        should_link_booking = random.random() < 0.7 and num_bookings > 0
-        
+        should_link_booking = random.random() < 0.7 and actual_num_bookings > 0
+
         # Choose case type based on whether we're linking to a booking
         if should_link_booking:
             case_type = random.choice(booking_related_types)
-            booking_id = random.randint(1, num_bookings)
-            
-            # VERIFY: Get customer_id from the booking to ensure consistency
-            cursor.execute('SELECT customer_id FROM bookings WHERE id = ?', (booking_id,))
-            result = cursor.fetchone()
-            if result is None:
-                print(f"⚠️  Warning: Booking {booking_id} not found, skipping case")
-                continue
-            customer_id = result[0]
+            # Select a random booking_id from actual bookings
+            booking_id = random.choice(list(booking_customer_map.keys()))
+            # Get the customer_id from the booking to ensure consistency
+            customer_id = booking_customer_map[booking_id]
         else:
             case_type = random.choice(non_booking_types)
             booking_id = None
@@ -355,132 +353,67 @@ def generate_db(path:str, num_customers=10000):
     ''', case_data)
     
     conn.commit()
-    
-    # VERIFY: Run relationship checks before closing
-    print("\n" + "="*60)
-    print("🔍 Verifying Database Relationships...")
-    print("="*60)
-    
-    verification_passed = True
-    
-    # Check 1: Packages -> Destinations
-    cursor.execute('''
-        SELECT COUNT(*) FROM packages 
-        WHERE destination_id NOT IN (SELECT id FROM destinations)
-    ''')
-    orphan_packages = cursor.fetchone()[0]
-    if orphan_packages > 0:
-        print(f"❌ {orphan_packages} packages reference non-existent destinations")
-        verification_passed = False
-    else:
-        print(f"✅ All {num_packages} packages have valid destination references")
-    
-    # Check 2: Bookings -> Customers and Packages
-    cursor.execute('''
-        SELECT COUNT(*) FROM bookings 
-        WHERE customer_id NOT IN (SELECT id FROM customers)
-        OR package_id NOT IN (SELECT id FROM packages)
-    ''')
-    orphan_bookings = cursor.fetchone()[0]
-    if orphan_bookings > 0:
-        print(f"❌ {orphan_bookings} bookings have invalid customer or package references")
-        verification_passed = False
-    else:
-        cursor.execute('SELECT COUNT(*) FROM bookings')
-        actual_bookings = cursor.fetchone()[0]
-        print(f"✅ All {actual_bookings} bookings have valid customer and package references")
-    
-    # Check 3: Payments -> Bookings
-    cursor.execute('''
-        SELECT COUNT(*) FROM payments 
-        WHERE booking_id NOT IN (SELECT id FROM bookings)
-    ''')
-    orphan_payments = cursor.fetchone()[0]
-    if orphan_payments > 0:
-        print(f"❌ {orphan_payments} payments reference non-existent bookings")
-        verification_passed = False
-    else:
-        print(f"✅ All {len(payment_data)} payments have valid booking references")
-    
-    # Check 4: Cases -> Customers and Bookings
-    cursor.execute('''
-        SELECT COUNT(*) FROM cases 
-        WHERE customer_id NOT IN (SELECT id FROM customers)
-    ''')
-    orphan_cases = cursor.fetchone()[0]
-    if orphan_cases > 0:
-        print(f"❌ {orphan_cases} cases reference non-existent customers")
-        verification_passed = False
-    else:
-        print(f"✅ All {len(case_data)} cases have valid customer references")
-    
-    cursor.execute('''
-        SELECT COUNT(*) FROM cases 
-        WHERE booking_id IS NOT NULL 
-        AND booking_id NOT IN (SELECT id FROM bookings)
-    ''')
-    orphan_case_bookings = cursor.fetchone()[0]
-    if orphan_case_bookings > 0:
-        print(f"❌ {orphan_case_bookings} cases reference non-existent bookings")
-        verification_passed = False
-    else:
-        cursor.execute('SELECT COUNT(*) FROM cases WHERE booking_id IS NOT NULL')
-        cases_with_bookings = cursor.fetchone()[0]
-        print(f"✅ All {cases_with_bookings} booking-linked cases have valid references")
-    
-    # Check 5: Case-Booking-Customer consistency
-    cursor.execute('''
-        SELECT COUNT(*) FROM cases c
-        INNER JOIN bookings b ON c.booking_id = b.id
-        WHERE c.customer_id != b.customer_id
-    ''')
-    mismatched = cursor.fetchone()[0]
-    if mismatched > 0:
-        print(f"❌ {mismatched} cases have mismatched customer_id with their linked booking")
-        verification_passed = False
-    else:
-        print(f"✅ All booking-linked cases match the booking's customer")
-    
+
+    # Verify foreign key constraints are enabled
+    cursor.execute("PRAGMA foreign_keys")
+    fk_enabled = cursor.fetchone()[0]
+
     # Get final statistics
+    cursor.execute('SELECT COUNT(*) FROM customers')
+    final_customers = cursor.fetchone()[0]
+    cursor.execute('SELECT COUNT(*) FROM destinations')
+    final_destinations = cursor.fetchone()[0]
+    cursor.execute('SELECT COUNT(*) FROM packages')
+    final_packages = cursor.fetchone()[0]
+    cursor.execute('SELECT COUNT(*) FROM bookings')
+    final_bookings = cursor.fetchone()[0]
+    cursor.execute('SELECT COUNT(*) FROM payments')
+    final_payments = cursor.fetchone()[0]
+    cursor.execute('SELECT COUNT(*) FROM cases')
+    final_cases = cursor.fetchone()[0]
+
     cursor.execute('SELECT COUNT(DISTINCT customer_id) FROM bookings')
     customers_with_bookings = cursor.fetchone()[0]
     cursor.execute('SELECT COUNT(DISTINCT customer_id) FROM cases')
     customers_with_cases = cursor.fetchone()[0]
+    cursor.execute('SELECT COUNT(*) FROM cases WHERE booking_id IS NOT NULL')
+    cases_with_bookings = cursor.fetchone()[0]
     cursor.execute('SELECT COUNT(*) FROM cases WHERE booking_id IS NULL')
     cases_without_bookings = cursor.fetchone()[0]
-    
+
     conn.close()
-    
+
     print("\n" + "="*60)
-    if verification_passed:
-        print("✅ ALL VERIFICATION CHECKS PASSED!")
-    else:
-        print("⚠️  SOME VERIFICATION CHECKS FAILED - Review above")
+    print("✅ Database Generation Complete!")
     print("="*60)
-    
-    print(f"\n✓ Database generated successfully at {path}!")
+    print(f"Foreign key constraints: {'ENABLED' if fk_enabled else 'DISABLED'}")
+
     print(f"\n📊 Summary Statistics:")
     print(f"  Tables:")
-    print(f"    • {num_customers:,} customers")
-    print(f"    • {num_destinations} destinations")
-    print(f"    • {num_packages} packages")
-    print(f"    • {len(booking_data):,} bookings")
-    print(f"    • {len(payment_data):,} payments")
-    print(f"    • {len(case_data):,} support cases")
+    print(f"    • {final_customers:,} customers")
+    print(f"    • {final_destinations} destinations")
+    print(f"    • {final_packages} packages")
+    print(f"    • {final_bookings:,} bookings")
+    print(f"    • {final_payments:,} payments")
+    print(f"    • {final_cases:,} support cases")
     print(f"\n  Relationships:")
-    print(f"    • {customers_with_bookings:,} customers have bookings ({customers_with_bookings/num_customers*100:.1f}%)")
-    print(f"    • {customers_with_cases:,} customers have cases ({customers_with_cases/num_customers*100:.1f}%)")
-    print(f"    • {cases_with_bookings:,} cases linked to bookings ({cases_with_bookings/len(case_data)*100:.1f}%)")
-    print(f"    • {cases_without_bookings:,} cases without booking link ({cases_without_bookings/len(case_data)*100:.1f}%)")
+    print(f"    • {customers_with_bookings:,} customers have bookings ({customers_with_bookings/final_customers*100:.1f}%)")
+    print(f"    • {customers_with_cases:,} customers have cases ({customers_with_cases/final_customers*100:.1f}%)")
+    print(f"    • {cases_with_bookings:,} cases linked to bookings ({cases_with_bookings/final_cases*100:.1f}%)")
+    print(f"    • {cases_without_bookings:,} cases without booking link ({cases_without_bookings/final_cases*100:.1f}%)")
+
+    print(f"\n✓ Database generated successfully at {path}!")
 
 def query_db(query: str) -> list:
     """Execute a query on the database."""
     if "DROP" in query.upper():
         raise Exception("DROP operations are not allowed.")
-    
+
     try:
         conn = sqlite3.connect("./sample_datasets/travel_company_customer_db/travel_company.db")
         cursor = conn.cursor()
+        # Enable foreign key constraints
+        cursor.execute("PRAGMA foreign_keys = ON")
         cursor.execute(query)
         result = cursor.fetchall()
         conn.close()
