@@ -1,5 +1,4 @@
 # imports
-
 from google import genai
 from google.genai import types
 from dotenv import load_dotenv
@@ -18,9 +17,9 @@ query_db_declaration = {
             "sqlite3_query": {
                 "type": "string",
                 "description": f"""
-                An SQLITE3 query to search the database. This is the current schema:
-                {schema}
-                        """,
+                    An SQLITE3 query to search the database. This is the current schema:
+                    {schema}
+                    """,
             },
         },
         "required": ["sqlite3_query"],
