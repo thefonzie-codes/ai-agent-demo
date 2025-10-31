@@ -1,6 +1,7 @@
 # Virtual Environment
 .venv/
-
+CLAUDE.md
+GEMINI.md
 chat_logs/
 
 # Python cache
